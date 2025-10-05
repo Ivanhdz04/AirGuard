@@ -3,12 +3,12 @@ services:
     name: airguard-app
     env: python
     buildCommand: chmod +x build.sh && ./build.sh
-    startCommand: cd backend && python app_render.py
+    startCommand: cd backend && python app_fullstack.py
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.7
       - key: FLASK_APP
-        value: backend/app_render.py
+        value: backend/app_fullstack.py
       - key: FLASK_ENV
         value: production
       - key: NODE_ENV
