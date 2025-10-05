@@ -19,34 +19,71 @@
 - Leaflet (for maps)
 - HTML5/CSS3
 
-## Installation
+## 🚀 Getting Started
 
-1. Install dependencies:
+### Prerequisites
+- Node.js (v14 or higher)
+- Python 3.8+
+- npm or yarn
+- pip
+
+### Installation
+
+#### Option 1: Quick Start (Recommended)
 ```bash
-npm install
+# Clone the repository
+git clone https://github.com/Ivanhdz04/AirGuard.git
+cd AirGuard
+
+# Run the startup script
+chmod +x start.sh
+./start.sh
 ```
 
-2. Run the application:
-```bash
-npm start
-```
+#### Option 2: Manual Setup
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser
+1. **Backend Setup:**
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   python app.py
+   ```
+
+2. **Frontend Setup:**
+   ```bash
+   npm install
+   npm start
+   ```
+
+3. **Access the application:**
+   - Frontend: [http://localhost:3000](http://localhost:3000)
+   - Backend API: [http://localhost:5000](http://localhost:5000)
+
+### 🔧 API Endpoints
+
+- `GET /api/health` - Health check
+- `GET /api/predict/<city>` - Get 24-hour prediction
+- `GET /api/data/<city>` - Get historical data
+- `GET /api/cities` - Get available cities
 
 ## Project Structure
 
 ```
-src/
-├── components/
-│   ├── AirQualitySection.js    # Air quality section
-│   ├── MapComponent.js         # Map component
-│   ├── WeatherSection.js       # Weather section
-│   ├── ChartComponent.js       # Trend chart
-│   ├── PollutantsChart.js      # Pollutant analysis chart
-│   ├── WeatherChart.js         # Weather conditions chart
-│   ├── VisualIndicators.js     # Visual indicators
-│   ├── MaskRecommendation.js   # Mask recommendation
-│   └── DataStatsComponent.js   # Data statistics
+AirGuard/
+├── frontend/                   # React frontend
+│   ├── src/
+│   │   ├── components/         # React components
+│   │   ├── hooks/              # Custom hooks
+│   │   └── utils/              # Utility functions
+│   └── package.json
+├── backend/                    # Flask backend
+│   ├── app.py                  # Main Flask application
+│   ├── models/                 # ML models (.pkl files)
+│   ├── data/                   # CSV data files
+│   ├── scripts/                # Data collection scripts
+│   └── requirements.txt
+├── data/                       # CSV data files
+└── start.sh                    # Startup script
 ├── hooks/
 │   └── useCSVData.js           # CSV data hook
 ├── utils/

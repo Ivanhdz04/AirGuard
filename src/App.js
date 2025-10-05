@@ -8,7 +8,14 @@ import WeatherChart from './components/WeatherChart';
 import VisualIndicators from './components/VisualIndicators';
 import MaskRecommendation from './components/MaskRecommendation';
 import DataStatsComponent from './components/DataStatsComponent';
+import PredictionCard from './components/PredictionCard';
+import HistoricalTrendsChart from './components/HistoricalTrendsChart';
+import WeatherCorrelationChart from './components/WeatherCorrelationChart';
+import AdvancedStatsPanel from './components/AdvancedStatsPanel';
+import PredictionTimelineChart from './components/PredictionTimelineChart';
+import ModelHealthIndicator from './components/ModelHealthIndicator';
 import { useCSVData } from './hooks/useCSVData';
+import { usePredictionAPI, useAPIHealth } from './hooks/usePredictionAPI';
 
 function App() {
   const [selectedLocation, setSelectedLocation] = useState('Mexico City');
@@ -17,6 +24,10 @@ function App() {
 
   // Cargar datos CSV
   const { airQualityData, weatherData, historicalData, allData, totalRecords, dateRange, loading, error } = useCSVData(selectedLocation);
+  
+  // Cargar predicciones de la API
+  const { prediction, historicalData: apiHistoricalData, loading: predictionLoading, error: predictionError, refetch } = usePredictionAPI(selectedLocation);
+  const { health } = useAPIHealth();
 
   const locations = ['Mexico City', 'Los Angeles'];
   const timeSlots = ['11:00', '12:00', '13:00'];
@@ -44,7 +55,7 @@ function App() {
               <h1 className="text-4xl font-bold text-white">AirGuard</h1>
             </div>
             <p className="text-gray-300 text-lg">Air Quality Protection Platform</p>
-            <p className="text-gray-400 text-sm">Advanced Prediction & Monitoring  City & Los Angeles</p>
+            <p className="text-gray-400 text-sm">Advanced Prediction & Monitoring</p>
           </div>
           
           <div className="flex items-center justify-between mb-4">
@@ -73,6 +84,9 @@ function App() {
                 </button>
               ))}
             </div>
+            
+            {/* Model Health Indicator */}
+            <ModelHealthIndicator health={health} prediction={prediction} />
           </div>
 
           {/* Tabs */}
@@ -126,10 +140,19 @@ function App() {
         {/* Main content */}
         {!loading && !error && (
           <>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
               {/* Air Quality Section */}
               <div className="space-y-6">
                 <AirQualitySection data={airQualityData} />
+              </div>
+
+              {/* Prediction Section */}
+              <div>
+                <PredictionCard 
+                  prediction={prediction} 
+                  loading={predictionLoading} 
+                  error={predictionError} 
+                />
               </div>
 
               {/* Map Section */}
@@ -145,6 +168,34 @@ function App() {
 
               {/* Chart Section */}
               <ChartComponent data={historicalData} />
+            </div>
+
+            {/* Advanced Analytics Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              {/* Historical Trends Chart */}
+              <HistoricalTrendsChart 
+                historicalData={apiHistoricalData} 
+                prediction={prediction} 
+              />
+
+              {/* Prediction Timeline Chart */}
+              <PredictionTimelineChart 
+                prediction={prediction} 
+                historicalData={apiHistoricalData} 
+              />
+            </div>
+
+            {/* Weather Correlation Section */}
+            <div className="grid grid-cols-1 gap-6 mb-6">
+              <WeatherCorrelationChart historicalData={apiHistoricalData} />
+            </div>
+
+            {/* Advanced Statistics Section */}
+            <div className="grid grid-cols-1 gap-6 mb-6">
+              <AdvancedStatsPanel 
+                prediction={prediction} 
+                historicalData={apiHistoricalData} 
+              />
             </div>
 
             {/* Visual Charts Section */}

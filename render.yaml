@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: airguard-app
+    env: python
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: cd backend && python app_fullstack.py
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FLASK_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    plan: free
