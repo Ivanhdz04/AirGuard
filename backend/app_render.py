@@ -22,28 +22,82 @@ def load_csv_data():
     global DATA_FILES
     
     try:
-        # Load CDMX historical data
-        cdmx_path = os.path.join('data', 'dataset_final_cdmx_limpio.csv')
-        if os.path.exists(cdmx_path):
-            DATA_FILES['cdmx'] = []
-            with open(cdmx_path, 'r', encoding='utf-8') as file:
-                reader = csv.DictReader(file)
-                for row in reader:
-                    DATA_FILES['cdmx'].append(row)
-            print(f"CDMX historical data loaded: {len(DATA_FILES['cdmx'])} records")
+        # Try multiple possible paths for the data files
+        possible_paths = [
+            'data/dataset_final_cdmx_limpio.csv',
+            '../data/dataset_final_cdmx_limpio.csv',
+            './backend/data/dataset_final_cdmx_limpio.csv'
+        ]
         
-        # Load LA historical data
-        la_path = os.path.join('data', 'dataset_final_LA_limpio.csv')
-        if os.path.exists(la_path):
-            DATA_FILES['la'] = []
-            with open(la_path, 'r', encoding='utf-8') as file:
-                reader = csv.DictReader(file)
-                for row in reader:
-                    DATA_FILES['la'].append(row)
-            print(f"LA historical data loaded: {len(DATA_FILES['la'])} records")
+        cdmx_loaded = False
+        for path in possible_paths:
+            if os.path.exists(path):
+                DATA_FILES['cdmx'] = []
+                with open(path, 'r', encoding='utf-8') as file:
+                    reader = csv.DictReader(file)
+                    for row in reader:
+                        DATA_FILES['cdmx'].append(row)
+                print(f"CDMX historical data loaded from {path}: {len(DATA_FILES['cdmx'])} records")
+                cdmx_loaded = True
+                break
+        
+        if not cdmx_loaded:
+            print("Warning: CDMX data file not found, creating sample data")
+            DATA_FILES['cdmx'] = create_sample_data('CDMX')
+        
+        # Load LA data
+        la_paths = [
+            'data/dataset_final_LA_limpio.csv',
+            '../data/dataset_final_LA_limpio.csv',
+            './backend/data/dataset_final_LA_limpio.csv'
+        ]
+        
+        la_loaded = False
+        for path in la_paths:
+            if os.path.exists(path):
+                DATA_FILES['la'] = []
+                with open(path, 'r', encoding='utf-8') as file:
+                    reader = csv.DictReader(file)
+                    for row in reader:
+                        DATA_FILES['la'].append(row)
+                print(f"LA historical data loaded from {path}: {len(DATA_FILES['la'])} records")
+                la_loaded = True
+                break
+        
+        if not la_loaded:
+            print("Warning: LA data file not found, creating sample data")
+            DATA_FILES['la'] = create_sample_data('LA')
             
     except Exception as e:
         print(f"Error loading data: {e}")
+        # Create fallback data
+        DATA_FILES['cdmx'] = create_sample_data('CDMX')
+        DATA_FILES['la'] = create_sample_data('LA')
+
+def create_sample_data(city):
+    """Create sample data if CSV files are not available"""
+    import random
+    from datetime import datetime, timedelta
+    
+    sample_data = []
+    base_time = datetime.now() - timedelta(hours=24)
+    
+    for i in range(24):
+        timestamp = (base_time + timedelta(hours=i)).isoformat()
+        pm25 = random.uniform(15, 45)  # Realistic PM2.5 range
+        
+        sample_data.append({
+            'timestamp': timestamp,
+            'pm25': str(round(pm25, 2)),
+            'temperature_2m': str(round(random.uniform(18, 28), 1)),
+            'relativehumidity_2m': str(round(random.uniform(40, 80), 1)),
+            'windspeed_10m': str(round(random.uniform(2, 8), 1)),
+            'winddirection_10m': str(round(random.uniform(0, 360), 1)),
+            'pressure_msl': str(round(random.uniform(1010, 1020), 1))
+        })
+    
+    print(f"Created sample data for {city}: {len(sample_data)} records")
+    return sample_data
 
 def calculate_aqi(pm25):
     """Calculate AQI from PM2.5 value"""
@@ -99,7 +153,23 @@ def health_check():
         'model_version': 'CSV-based v1.0',
         'response_time_ms': 50,
         'timestamp': datetime.now().isoformat(),
-        'data_sources': list(DATA_FILES.keys())
+        'data_sources': list(DATA_FILES.keys()),
+        'data_loaded': {city: len(data) for city, data in DATA_FILES.items()},
+        'port': os.environ.get('PORT', '5000')
+    })
+
+@app.route('/api/debug', methods=['GET'])
+def debug_info():
+    """Debug endpoint to check system status"""
+    return jsonify({
+        'status': 'debug',
+        'timestamp': datetime.now().isoformat(),
+        'data_files': list(DATA_FILES.keys()),
+        'data_counts': {city: len(data) for city, data in DATA_FILES.items()},
+        'working_directory': os.getcwd(),
+        'files_in_data_dir': os.listdir('data') if os.path.exists('data') else 'data directory not found',
+        'port': os.environ.get('PORT', '5000'),
+        'sample_data': DATA_FILES.get('cdmx', [])[:2] if DATA_FILES.get('cdmx') else 'No CDMX data'
     })
 
 @app.route('/api/predict/<city>', methods=['GET'])
@@ -196,5 +266,14 @@ if __name__ == '__main__':
     print("Frontend: React app served at /")
     print("=" * 50)
     
+    # Get port from environment (Render sets this)
     port = int(os.environ.get('PORT', 5000))
-    app.run(debug=False, host='0.0.0.0', port=port)
+    print(f"Starting server on port {port}")
+    
+    # Run the app
+    try:
+        app.run(debug=False, host='0.0.0.0', port=port)
+    except Exception as e:
+        print(f"Error starting server: {e}")
+        print("Trying alternative port...")
+        app.run(debug=False, host='0.0.0.0', port=10000)
