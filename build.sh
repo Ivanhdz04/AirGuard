@@ -11,11 +11,10 @@ npm install
 echo "Building React frontend..."
 npm run build
 
-# Install Python dependencies
+# Install Python dependencies (minimal)
 echo "Installing Python dependencies..."
-cd backend
-pip install -r requirements.txt
-cd ..
+pip install --upgrade pip
+pip install Flask==2.3.3 Flask-CORS==4.0.0
 
 echo "Build completed successfully!"
 echo "Frontend built in: build/"
